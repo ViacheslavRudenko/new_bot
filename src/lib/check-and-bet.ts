@@ -1,5 +1,5 @@
 import { parseEther } from "@ethersproject/units";
-import { Wallet } from "ethers";
+import { Wallet, utils } from "ethers";
 
 import { betAmountAtom } from "./atoms";
 import { calculateIsBullish } from "./calculate-is-bullish";
@@ -14,7 +14,9 @@ export const checkAndBet = async (signer: Wallet) => {
     currentEpoch,
     signer.address
   );
-  getRemainingTimeToBet(signer);
+  getRemainingTimeToBet(signer).then((time) => {
+    console.log(calculateIsBullish());
+  });
 
   const isEntered = currentAmount.gt(0);
 
@@ -44,33 +46,35 @@ export const checkAndBet = async (signer: Wallet) => {
 };
 
 async function getRemainingTimeToBet(signer: any) {
-  const pancakePredictionContract = createPancakePredictionContract(signer);
+  const pancakePredictionContract = createPancakePredictionContract(
+    signer
+  ) as any;
+
   const currentEpoch = await pancakePredictionContract.currentEpoch();
-  const epochInfo = await pancakePredictionContract.epochInfo(currentEpoch);
+  const epochInfo = await pancakePredictionContract.rounds(currentEpoch);
 
-  const epochStartTime = epochInfo.startTime;
-  const epochDuration = epochInfo.duration;
+  const dateNow = Date.now();
 
-  // Отримайте поточний час блокчейну
-  const currentBlock = await signer.provider.getBlock("latest");
-  const currentTimestamp = currentBlock.timestamp;
+  const hexTimestamp = epochInfo.lockTimestamp._hex;
+  const decimalTimestamp = parseInt(hexTimestamp, 16);
+  const timeToBet = decimalTimestamp * 1000;
 
-  // Обчисліть час, який залишився до закінчення епохи
-  const timeRemaining = epochStartTime.add(epochDuration).sub(currentTimestamp);
+  const timeRemaining = (timeToBet - dateNow) / 1000;
 
   return timeRemaining;
 }
 
 // Використання функції для отримання залишкового часу
-async function checkRemainingTime() {
-  const signer = ""; // Отримайте ваш підписник (Wallet) тут
-  const remainingTime = await getRemainingTimeToBet(signer);
-  console.log(
-    `Час до закінчення ставки: ${utils.formatUnits(
-      remainingTime,
-      "seconds"
-    )} секунд`
-  );
-}
+// async function checkRemainingTime() {
+//   const signer = new Wallet(""); // Отримайте ваш підписник (Wallet) тут
+//   const remainingTime = await getRemainingTimeToBet(signer);
+//   console.log(
+//     `Час до закінчення ставки: ${utils.formatUnits(
+//       remainingTime,
+//       "seconds"
+//     )} секунд`
+//   );
+//   return remainingTime;
+// }
 
-checkRemainingTime();
+// checkRemainingTime();
