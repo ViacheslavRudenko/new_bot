@@ -7,12 +7,16 @@ import { betAmountAtom, isAddressZeroAtom, privateKeyAtom } from "~/lib/atoms";
 
 export default function ChangeSettings() {
   const [isPrivateKeyModalOpen, setIsPrivateKeyModalOpen] = useState(false);
-  const [localPrivateKey, setLocalPrivateKey] = useState("");
+  const [localPrivateKey, setLocalPrivateKey] = useState(
+    localStorage.getItem("privateKey") ?? ""
+  );
 
   const isAddressZero = useStore(isAddressZeroAtom);
 
   const [isBetAmountModalOpen, setIsBetAmountModalOpen] = useState(false);
-  const [localBetAmount, setLocalBetAmount] = useState("");
+  const [localBetAmount, setLocalBetAmount] = useState(
+    localStorage.getItem("betAmount") ?? ""
+  );
 
   return (
     <>
